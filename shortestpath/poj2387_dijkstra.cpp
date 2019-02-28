@@ -1,8 +1,7 @@
 /*
-
-time: 2019/2/17
-algorithm: Dijkstra
-
+time: 2019/2/27
+algorithm: Dijkstra+heap
+status: accept
 */
 #include <iostream>
 #include <cstdio>
