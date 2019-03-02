@@ -1,7 +1,7 @@
 /*
 time: 2019/3/1
 algorithm: A_star+ Dijkstra
-status: no answer
+status: accept
 */
 #include <iostream>
 #include <cstdio>
@@ -34,22 +34,13 @@ vector <edge> ZG[maxn];
 int dist[maxn];
 int n,m,start,ed,k,ans=0;
 
-struct point{
-    int v;
-    int g,h;
-    point(int _v,int _g,int _h):v(_v),g(_g),h(_h){}
-    bool operator <(point a) const{
-        return h+g > a.h+a.g;
-    }
-};
-
 void dijk(int s)
 {
     for(int i=0;i<=n+1;i++)
         dist[i]=inf;
     dist[s]=0;
     pq.push(pii(0,s));
-    while(pq.size())
+    while(!pq.empty())
     {
         pii tp=pq.top();
         pq.pop();
@@ -66,24 +57,32 @@ void dijk(int s)
     }
 }
 
+struct point{
+    int v;
+    int g,h;  //¹ÀÖµº¯Êý,h,g
+    point(int _v,int _g,int _h):v(_v),g(_g),h(_h){}
+    bool operator <(point a) const{
+        return h+g > a.h+a.g;
+    }
+};
+
 priority_queue <point> que;
 int cnt[maxn];
 int astar()
 {
     clr(cnt,0);
     que.push(point(start,0,dist[start]));
-    while(que.size())
+    while(!que.empty())
     {
         point tp=que.top();
         que.pop();
         int v=tp.v,g=tp.g,h=tp.h;
-        cnt[v++];
-        if(cnt[v]==k && v==ed)
+        cnt[v]++;
+        if(cnt[ed]==k)
             return g;
         if(cnt[v]>k)
             continue;
-        for(int i=0;i<ZG[v].size();i++)
-        {
+        for(int i=0;i<ZG[v].size();i++){
             edge e=ZG[v][i];
             que.push(point(e.to,e.cost+g,dist[e.to]));
         }
