@@ -4,9 +4,9 @@
 
 ### 题目描述：
 
-给定自然数n，确定关于x，y，z的不定方程$ \sqrt{x-\sqrt{n}} +\sqrt{y}-\sqrt{z}=0​$的所有自然数解。
+给定自然数n，确定关于x，y，z的不定方程$ \sqrt{x-\sqrt{n}} +\sqrt{y}-\sqrt{z}=0$的所有自然数解。
 
-给出解的数量和所有解对$xyz$之和对$(10^9+7)$取模。
+给出解的数量和所有解对$xyz$之和对$(10^9+7)$取模，如果是无穷多解，就输出“infty”
 
 题目链接: [<https://www.cometoj.com/contest/34/problem/A>]
 
