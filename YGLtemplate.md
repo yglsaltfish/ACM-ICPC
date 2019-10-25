@@ -5,28 +5,82 @@ ll gcd(ll a,ll b){return b==0?a:gcd(b,a%b);}
 ll lcm(lla ,ll b){return min(a,b)*gcd(a,b);}
 ```
 
-### 2、线性素数筛法
+### 2、筛法
+
+##### (1)线性素数筛
 
 ```c++
-//cnt为素数个数
-long long prime[MAX],cnt;
-bool isprime[MAX];
-void getprime()
+//count 为素数个数
+//f为欧拉函数
+int prime[maxn];
+int f[maxn];
+bool isprime[maxn];
+
+void getphi()
 {
-    cnt=1;
-    memset(isprime,1,sizeof(isprime));
-    isprime[0]=isprime[1]=0;
-    for(long long i=2; i<=MAX; i++)
-    {
-        if(isprime[i])
-            prime[cnt++]=i;
-        for(long long j=0; j<cnt&&prime[j]*i<MAX; j++)
+	int count = 0;
+    clr(isprime,1);
+	for( int i = 2; i <= 5000000; i++ )
+	{
+		if ( isprime[i] )
+		{
+			prime[++count] = i;
+			f[i] = i - 1;
+		}
+        for( int j = 1; j <= count; j++ )
         {
-            isprime[prime[j]*i]=0;
-        }
-    }
+            if ( i * prime[j] > maxn-5 ) break;
+            isprime[ i * prime[j] ] = false;
+            if ( i % prime[j] )
+                f[ i * prime[j] ] = (prime[j]-1) * f[i];
+            else
+            {
+                f[ i * prime[j] ] = (prime[j]) * f[i];
+                break;
+            }
+        }				
+	}	
 }
 ```
+
+##### (2)莫比乌斯函数
+
+```c++
+//count 为素数个数
+int prime[maxn];
+bool isprime[maxn];
+int mu[maxn];
+
+void getmu()
+{
+	int count = 0;
+    clr(isprime,1);
+    mu[1]=1;
+	for( int i = 2; i <= 5000000; i++ )
+	{
+		if ( isprime[i] )
+		{
+			prime[++count] = i;
+             mu[i] = -1;
+        }
+        for( int j = 1; j <= count; j++ )
+        {
+            if ( i * prime[j] > maxn-5 ) break;
+            isprime[ i * prime[j] ] = false;
+            if ( i % prime[j] )
+                mu[i * prime[j]] = -mu[i];
+            else
+            {
+                mu[i * prime[j]] = 0;
+                break;
+            }
+        }				
+	}	
+}
+
+```
+
+
 
 ### 3、欧拉函数
 
@@ -153,7 +207,6 @@ struct seg{
     int dat,lazy;
     seg(){lazy=0;}
 }segm[maxn<<2];
-
 void build(int p,int l,int r)
 {
     segm[p].l=l;
@@ -171,7 +224,6 @@ void build(int p,int l,int r)
 
     return ;
 }
-
 void spread(int p)
 {
     if(segm[p].lazy)
@@ -184,7 +236,6 @@ void spread(int p)
     }
     return ;
 }
-
 void update(int p,int val,int l,int r)
 {
     if(l<=segm[p].l && r>=segm[p].r)
@@ -222,7 +273,7 @@ int query(int p,int l,int r)
 
 ```c++
 int father[250010 * 2], rank[250010 * 2];
-void disjoint_set(int n)
+void init(int n)
 {
     for(int i = 1; i <= n; i++)
         father[i] = i;
@@ -284,7 +335,6 @@ bool operator == (const Point &A ,const Point &B)
 {
     return sign(A.x - B.x) == 0 && sign(A.y - B.y) == 0;
 }
-
 struct Line{
     Point a,b;
     Line(){}
@@ -297,39 +347,31 @@ db get_distance(Point a, Point b){return sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y
 //  两向量的叉乘
 db Cross(Vec A,Vec B){return A.x * B.y - A.y * B.x;}
 db Area2(Point A,Point B,Point C){return Cross(B - A, C - A);}
-
 //  两向量的点乘
 db Dot(Vec A,Vec B){return A.x * B.x + A.y * B.y;}
-
 //向量长度
 db Length(Vec A){return sqrt(Dot(A, A));}
-
 //向量角度
 db angle(Vec A,Vec B){return acos(Dot(A, B) / Length(A) / Length(B));}
-
 //求向量的单位法线(A不能是零向量)
 Vec Normal(Vec A){db L = Length(A);return Vec(-A.y / L, A.x / L);}
-
 //求向量旋转 , 逆时针旋转角度rad
 Vec Rotate(Vec A,db rad)
 {
     return Vec(A.x * cos(rad) - A.y * sin(rad), A.x * sin(rad) + A.y * cos(rad));
 }
-
 //求点到直线的距离
 db dis_dot_Line(Point P,Point A,Point B)
 {
     Vec v1 = B - A, v2 = P - A;
     return abs(Cross(v1, v2) / Length(v1));
 }
-
 //求点到直线的投影
 Point GetLineProjection(Point P,Point A ,Point B)
 {
     Vec v = B - A;
     return A + v * (Dot(v, P - A) / Dot(v, v));
 }
-
 //线段相交  (规范相交)
 bool SegmentIntersection(Point A1,Point A2,Point B1,Point B2)
 {
@@ -337,13 +379,11 @@ bool SegmentIntersection(Point A1,Point A2,Point B1,Point B2)
     db c3 = Cross(B2 - B1, A1 - B1), c4 = Cross(B2 - B1, A2 - B1);
     return sign(c1) * sign(c2) < 0 && sign(c3) * sign(c4) < 0;
 }
-
 //判断点是否在线段上（不包含端点）
 bool onSegment(Point p,Point a1,Point a2)
 {
     return sign(Cross(a1 - p, a2 - p)) == 0 && sign(Dot(a1 - p, a2 - p));
 }
-
 //点到线段的距离
 db distancetosegment(Point P,Point A,Point B)
 {
@@ -357,14 +397,6 @@ db distancetosegment(Point P,Point A,Point B)
     else
         return abs(Cross(v1, v2)) / Length(v1);
 }
-
-int main()
-{
-    ios::sync_with_stdio(false);
-    
-    return 0;
-}
-
 ```
 
 
@@ -372,18 +404,34 @@ int main()
 ### 8、RMQ 算法(ST表)
 
 ```c++
-void ST()
+/*
+ * st表
+ * st[i][j]表示元素arr[i]开始，长度为2^j区间内的最值
+ * st[i][0]为arr[i]，st[i][j] = max(st[i][j-1], st[i - (1 << j-1)][j-1])
+ * 求区间[l, r]内最值：
+ * Log[i]代表i的对数向下取整
+ * 对于长度len而言，显然2^log2[len]严格大于len的一半
+ * 令k = Log[r - l + 1]，则最值为max(st[l][k], st[r - (1<<k) + 1][k])
+ */
+#define maxn (55000)
+int Log[maxn], st[maxn][32];
+void st_prepare(int n, int *arr)
 {
-    for(int i=1;i<=n;i++) RMQ[i][0]=code[i];
-    for(int j=1;(1<<j)<=n;j++)
-        for(int i=1;i+(1<<j)-1<=n;i++)
-           RMQ[i][j]=max(RMQ[i][j-1],RMQ[i+(1<<(j-1))][j-1]);
+     Log[1] = 0;
+    for(int i = 2; i <= n; i++)
+    {
+        Log[i]=Log[i>>1]+1;
+        st[i][0] = arr[i];
+    }
+    st[1][0] = arr[1];
+    for (int j = 1; (1<<j) <= n; j++)
+        for (int i = 1; i + (1 << j) - 1 <= n; i++)
+            st[i][j] = min(st[i][j - 1], st[i + (1 << (j - 1))][j - 1]);
 }
-int Query(int L,int R)
+int st_query(int l, int r)
 {
-    int k=0;
-    while((1<<(k+1))<=R-L+1) k++;
-    return max(RMQ[L][k],RMQ[R-(1<<k)+1][k]);
+    int len = r - l + 1, k = Log[len];
+    return max(st[l][k], st[r - (1 << k) + 1][k]);
 }
 ```
 
@@ -437,30 +485,25 @@ struct edge{
     edge(int tt,ll cst) :to(tt),cost(cst){}
     edge(){}
 }G[maxn];
-
 bool cmp(edge a,edge b)
 {
     return a.cost<b.cost;
 }
-
 void init()
 {
     for(int i=1;i<=n;i++)
       fa[i]=i;
 }
-
 int find_f(int x)
 {
     if(x==fa[x]) return x;
     else
         return x=find_f(fa[x]);
 }
-
 bool same(int x,int y)
 {
     return find_f(x)==find_f(y);
 }
-
 void unio(int x,int y)
 {
     int u=find_f(x),v=find_f(y);
@@ -489,7 +532,6 @@ ll kruscal()
 ```c++
 struct Trie
 {
-
     int next[maxn][26], ed[maxn];
     int L, root;
     int newnode()
@@ -515,7 +557,6 @@ struct Trie
         }
         ed[now] = 1;
     }
-    
     bool query(char s[])
     {
         int now = root;
@@ -529,7 +570,6 @@ struct Trie
         }
         return ed[now] == 1;
     }
-
 };
 ```
 
@@ -546,7 +586,6 @@ struct node
     int sum;
     int l,r;
 } p[maxn*20];
-
 int build(int l,int r)
 {
     int rt=++tot;
@@ -559,7 +598,6 @@ int build(int l,int r)
     p[rt].r=build(mid+1,r);
     return rt;
 }
-
 int update(int l,int r,int pre,int k)
 {
     int rt=++tot;
@@ -571,7 +609,6 @@ int update(int l,int r,int pre,int k)
     else p[rt].r=update(mid+1,r,p[pre].r,k);
     return rt;
 }
-
 int query(int l,int r,int x,int y,int k)
 {
     if(l==r)
@@ -582,15 +619,12 @@ int query(int l,int r,int x,int y,int k)
     else return query(mid+1,r,p[x].r,p[y].r,k-sum);
 
 }
-
 int a[maxn];
 vector <int >v;
-
 int getid(int x)
 {
     return lower_bound(v.begin(),v.end(),x)-v.begin()+1;
 }
-
 int main()
 {
     int t;
@@ -621,59 +655,55 @@ int main()
 }
 ```
 
-### 12、KMP
+### 12、KMP类算法
+
+##### (1)普通KMP
 
 ```c++
-#define ll long long
-#define db double
-#define clr(a,b) memset(a,b,sizeof(a))
-
-int next[1000000+5];
-void getnext(char *p)
-{
-    int i=0,j=-1;
-    next[0]=-1;
-    int m=strlen(p);
-    while(i<m)
+    int nxt[1000000+5];
+    void getnxt(char *p)
     {
-        if(p[i]==p[j] || j==-1)
+        int i=0,j=-1;
+        nxt[0]=-1;
+        int m=strlen(p);
+        while(i<m)
         {
-            i++;j++;
-            next[i]=j;
-            if (p[i] != p[j])
-				next[i] = j;
-			else
-				next[i] = next[i];
+            if(p[i]==p[j] || j==-1)
+            {
+                i++;j++;
+                nxt[i]=j;
+                if (p[i] != p[j])
+                    nxt[i] = j;
+                else
+                    nxt[i] = nxt[i];
+            }
+            else
+                j=nxt[j];
         }
-        else
-            j=next[j];
     }
-}
-int kmp(char* T,char* P)
-{
-    int res=0;
-    int j=0,i=0;
-    int n=strlen(T),m=strlen(P);
-    while (i < n)
-	{
-		if (j == -1 || P[j] == T[i])
-		{
-			i++;
-			j++;
-		}
-		else
-			j = next[j];
-		if (j == m)
-		{
-			//res++;
-			//j = next[j];
-			return i-m;
-		}
-	}
-    //return res;
-    return -1;
-}
-
+    int kmp(char* T,char* P)
+    {
+        int res=0;
+        int j=0,i=0;
+        int n=strlen(T),m=strlen(P);
+        while (i < n)
+        {
+            if (j == -1 || P[j] == T[i])
+            {
+                i++;
+                j++;
+            }
+            else
+                j = nxt[j];
+            if (j == m)
+            {
+                //res++;
+                //j = nxt[j];
+                return i-m;
+            }
+        }
+        return -1;
+    }
 int n,len;
 char p[10000+5],t[1000000+5];
 int main()
@@ -683,13 +713,13 @@ int main()
     {
         scanf("%s",p);
         scanf("%s",t);
-        getnext(p);
+        getnxt(p);
         printf("%d\n",kmp(t,p));
     }
 
     return 0;
 }
-/*
+/*	
 Next数组的性质：
 （1）如果 len-next[len] 能被 len 整除则 len - next[len] 是该串的循环节
 （2）s[0] ~ s[next[len]-1] 中的内容一定能与 s[len-next[len]] ~ s[len-1] 匹配
@@ -697,12 +727,56 @@ Next数组的性质：
 */
 ```
 
+##### (2)扩展KMP
+
+```c++
+/* 求解 T 中 nxt[]，注释参考 GetExtend() */
+void GetNext(string & T, int & m, int nxt[])
+{
+    int a = 0, p = 0;
+    nxt[0] = m;
+    for (int i = 1; i < m; i++)
+    {
+        if (i >= p || i + nxt[i - a] >= p)
+        {
+            if (i >= p)
+                p = i;
+            while (p < m && T[p] == T[p - i])
+                p++;
+            nxt[i] = p - i;
+            a = i;
+        }
+        else
+            nxt[i] = nxt[i - a];
+    }
+}
+/* 求解 extend[] */
+void GetExtend(string & S, int & n, string & T, int & m, int extend[], int nxt[])
+{
+    int a = 0, p = 0;
+    GetNext(T, m, nxt);
+    for (int i = 0; i < n; i++)
+    {
+        if (i >= p || i + nxt[i - a] >= p) // i >= p 的作用：举个典型例子，S 和 T 无一字符相同
+        {
+            if (i >= p)
+                p = i;
+            while (p < n && p - i < m && S[p] == T[p - i])
+                p++;
+            extend[i] = p - i;
+            a = i;
+        }
+        else
+            extend[i] = nxt[i - a];
+    }
+}
+```
+
 ### 13、AC自动机 
 
 ```c++
 int n;
 char p[maxn];
-
 struct Aho_Corasick
 {
     int next[max_tot][26], nd[max_tot], fail[max_tot], vis[max_tot];
@@ -748,7 +822,6 @@ struct Aho_Corasick
             fail[next[root][i]] = root;
             Q.push(next[root][i]);
         }
-
         while(!Q.empty())
         {
             int now = Q.front();
@@ -781,8 +854,6 @@ struct Aho_Corasick
         return ret;
     }
 } aho;
-
-
 int cas;
 int main()
 {
@@ -804,7 +875,9 @@ int main()
 }
 ```
 
-### 14、Dijkstra
+### 14、最短路算法
+
+##### (1)Dijkstra+堆优化
 
 ```c++
 #define ll long long
@@ -844,8 +917,6 @@ void dijk(int s)
 }
 int main()
 {
-    ios::sync_with_stdio(false);
-    cin.tie(0);
     cin >> n >> m >> s;
     int from, to, cost;
     edge in;
@@ -862,10 +933,80 @@ int main()
 }
 ```
 
+##### (2)floyd
+
+```c++
+//floyd求最小环
+void floyd()
+{
+    int i, j, k;
+    int ans = inf;
+    for (k = 1; k <= n; k++)
+    {
+        for (i = 1; i < k; i++)
+            for (j = i + 1; j < k; j++)
+                if (dis[i][j] + mp[i][k] + mp[k][j] < ans)
+                    ans = dis[i][j] + mp[i][k] + mp[k][j];
+        for (i = 1; i <= n; i++)
+            for (j = 1; j <= n; j++)
+                if (dis[i][k] + dis[k][j] < dis[i][j])
+                    dis[i][j] = dis[i][k] + dis[k][j];
+    }
+}
+```
+
+##### (3)spfa
+```c++
+struct node
+{
+    int to,w,next;
+}edge[maxn];
+int head[maxn];
+int tot = 0;
+void addedge(int x,int y,int z)
+{
+    tot++;
+    edge[tot].w = z , edge[tot].to = y , edge[tot].next = head[x];
+    head[x] = tot;
+}
+node edge[maxn];
+int head[maxn];
+int dis[maxn];
+bool spfa( int st  )
+{
+	bool vis[maxn];
+	int outque[maxn];
+	memset(vis,0,sizeof(vis));
+	memset(outque,0,sizeof(outque));
+	for( int i = 1; i <=n; i++ ) dis[i] = inf;//初始化距离
+	queue<int> q;
+	q.push(st) , vis[st] = true , dis[st] = 0;//初始状态
+	while( !q.empty() )
+	{
+		int u = q.front();
+		q.pop();
+		outque[u]++ , vis[u] = false;
+		if ( outque[u] > n ) return false; //有负环 无最短路
+		for( int k = head[u]; k != -1; k = edge[k].next )
+		{
+			int v = edge[k].to;
+			if ( dis[v] > dis[u] + edge[k].w )
+			{
+				dis[v] = dis[u] + edge[k].w;
+				if( !vis[v] )	vis[v] = true , q.push( v );
+			}
+		}
+	}
+	return true;
+}
+
+```
+
+
+
 ### 15、manacher
 
 ```c++
-
 void manacher(string& s, int *R, int n)
 {
 /*
@@ -911,7 +1052,6 @@ struct Palindromic_Tree
 	int last;	  //指向上一个字符所在的节点，方便下一次add
 	int n;		   //字符数组指针
 	int p;		   //节点指针
-
 	int newnode(int l)
 	{ //新建节点
 		for (int i = 0; i < N; ++i)
@@ -922,7 +1062,6 @@ struct Palindromic_Tree
 		len[p] = l;
 		return p++;
 	}
-
 	void init()
 	{ //初始化
 		p = 0;
@@ -933,14 +1072,12 @@ struct Palindromic_Tree
 		S[n] = -1; //开头放一个字符集中没有的字符，减少特判
 		fail[0] = 1;
 	}
-
 	int get_fail(int x)
 	{ //和KMP一样，失配后找一个尽量最长的
 		while (S[n - len[x] - 1] != S[n])
 			x = fail[x];
 		return x;
 	}
-
 	void add(int c)
 	{
 		c -= 'a';
@@ -966,7 +1103,6 @@ struct Palindromic_Tree
 			add(tmp);
 		}
 	}
-	
 	void count()
 	{
 		for (int i = p - 1; i >= 0; --i)
@@ -979,20 +1115,15 @@ struct Palindromic_Tree
 ### 17、dinic
 
 ```c++
-#include<cstdio>
-#include<cstring>
-#include<queue>
 #define inf 1e9
 using namespace std;
 const int maxn=500+5;
- 
 struct Edge
 {
     int from,to,cap,flow;
     Edge(){}
     Edge(int f,int t,int c,int flow):from(f),to(t),cap(c),flow(flow){}
 };
- 
 struct Dinic
 {
     int n,m,s,t;
@@ -1001,14 +1132,12 @@ struct Dinic
     bool vis[maxn];
     int cur[maxn];
     int d[maxn];
- 
     void init(int n,int s,int t)
     {
         this->n=n, this->s=s, this->t=t;
         edges.clear();
         for(int i=1;i<=n;i++) G[i].clear();
     }
- 
     void AddEdge(int from,int to,int cap)
     {
         edges.push_back(Edge(from,to,cap,0));
@@ -1017,7 +1146,6 @@ struct Dinic
         G[from].push_back(m-2);
         G[to].push_back(m-1);
     }
- 
     bool BFS()
     {
         memset(vis,0,sizeof(vis));
@@ -1041,7 +1169,6 @@ struct Dinic
         }
         return vis[t];
     }
- 
     int DFS(int x,int a)
     {
         if(x==t || a==0) return a;
@@ -1060,7 +1187,6 @@ struct Dinic
         }
         return flow;
     }
- 
     int dinic()
     {
         int flow=0;
@@ -1071,9 +1197,7 @@ struct Dinic
         }
         return flow;
     }
-    
 }DC;
- 
 int main()
 {
     int n,m;
@@ -1119,7 +1243,6 @@ struct ISAP
              d[i] = cur[i] = p[i] = num[i] = 0;
          }
     }
-    
     void addedge(int from,int to,int cap)
     {
         edges.push_back((Edge){from,to,cap,0});
@@ -1128,7 +1251,6 @@ struct ISAP
         G[from].push_back(m-2);
         G[to].push_back(m-1);
     }
- 
     int Augumemt()
     {
         int x=t,a=INF;
@@ -1170,7 +1292,6 @@ struct ISAP
             }
         }
     }
- 
     int Maxflow(int s,int t)//根据情况前进或者后退，走到汇点时增广
     {
         this->s=s;
@@ -1223,7 +1344,6 @@ struct ISAP
 };
 int main()
 {
-//    freopen("t.txt","r",stdin);
     int n,m;
     ISAP sap;
     while(cin>>n>>m)
@@ -1237,7 +1357,6 @@ int main()
             cin>>from>>to>>cap;
             sap.addedge(from,to,cap);
         }
-       // cin>>sap.s>>sap.t;
         cout<<sap.Maxflow(1,sap.m)<<endl;
     }
     return 0;
@@ -1249,19 +1368,7 @@ int main()
 ### 19、大数
 
 ```c++
-#include <iostream>
-#include <cstdio>
-#include <cstring>
-#include <algorithm>
-#include <vector>
-#include <cmath>
-#include <queue>
-
-using namespace std;
-
-
 const int maxn = 1000;
-
 struct bign
 {
     int d[maxn], len;
@@ -1428,5 +1535,221 @@ int main()
     cout<<sum<<endl;
     return 0;
 }
+```
+
+### 20、字符串哈希
+
+```c++
+/*
+ * 自然溢出字符串哈希
+ * 可用于字符串判重，或利用字符串单调性结合二分解决问题
+ */
+typedef unsigned long long ulint;
+const ulint seed = 50009uLL;
+#define maxn (100010)
+ulint xp[maxn], H[maxn];
+char s[maxn];
+void init_xp(int n)
+{
+    xp[0] = 1;
+    for(int i = 1; i < n; i++)
+        xp[i] = xp[i-1] * seed;
+}
+void init_hash(int n)
+{
+    H[0] = s[0] - 'a' + 1;
+    for(int i = 1; i < n; i++)
+        H[i] = H[i-1] * seed + (ulint)(s[i] - 'a' + 1);
+}
+void ask_hash(int l, int r)
+{
+    if(l == 0) return H[r];
+    return H[r] - H[l-1] * xp[r - l + 1];
+}
+```
+
+### 21、数学公式
+
+##### (1)莫比乌斯反演
+*1*. 如果有$f(n)=\sum_{d\mid n}g(d)$, 则有 $g(n)=\sum_{d\mid n}{\mu(d)f(\frac{n}{d})}$
+
+*2*. $\sum_{d\mid n}{\mu(d)}=[n=1]$
+
+*3*. $\varphi(n)=\sum_{d\mid n}{\mu(d)\frac{d}{n}}$
+
+
+##### (2)关于欧拉函数的一些公式
+*1*. $n=\sum_{d\mid n}\varphi(d)$
+
+*2*. $\sum_{i=1}^{n}{[gcd(i,n)=1]\cdot i}=\frac{n\cdot \varphi(n)+[n=1]}{2}$
+
+*3.* $\sum_{i=1}^{n}{gcd[i,j]}$
+
+### 22、后缀数组
+
+*1*.不同子串的数目: $\sum_{i=0}^{n-1}{(n-p[i])}-\sum_{i=0}^{n-1}{lcp[i]}=\frac{n^2+n}{2}-\sum_{i=0}^{n-2}{lcp[i]}$
+
+```c++
+/*
+ * 后缀数组
+ * 后缀数组的倍增构造法
+ * 复杂度为O(nlogn)
+ * 
+ * 从 sa[i] 开始得后缀排在i个
+ * 从 i 开始得后缀排名为 rank[i]
+ * height[i] 表示 sa[i-1] 和sa[i] 的最长公共前缀长度
+ */
+const int maxn=1e6+10;
+bool cmp(int *r, int a, int b, int l)
+{ return r[a] == r[b] && r[a + l] == r[b + l]; }
+int ta[maxn], tb[maxn], bk[maxn];
+void da(int *r, int *sa, int n, int m)
+{
+    int i, j, p, *x = ta, *y = tb, *t;
+    for(i = 0; i < m; i++) bk[i] = 0;
+    for(i = 0; i < n; i++) bk[x[i] = r[i]]++;
+    for(i = 1; i < m; i++) bk[i] += bk[i-1];
+    for(i = 0; i < n; i++) sa[--bk[x[i]]] = i;
+    for(j = 1, p = 1; p < n; j <<=1, m = p)
+    {
+        for(p = 0, i = n - j; i < n; i++) y[p++] = i;
+        for(i = 0; i < n; i++) if(sa[i] >= j) y[p++] = sa[i] - j;
+        for(i = 0; i < m; i++) bk[i] = 0;
+        for(i = 0; i < n; i++) bk[x[i]]++;
+        for(i = 1; i < m; i++) bk[i] += bk[i-1];
+        for(i = n-1; i >= 0; i--) sa[--bk[x[y[i]]]] = y[i];
+        for(t = x, x = y, y = t, x[sa[0]] = 0, p = 1, i = 1; i < n; i++)
+            x[sa[i]] = cmp(y, sa[i-1], sa[i], j)? p-1: p++;
+    }
+}
+#define rank rrank
+int rank[maxn], sa[maxn], height[maxn];
+void calheight(int *r, int *sa, int n)
+{
+    int i, j, k;
+    for (i = 1; i <= n; i++)
+        rank[sa[i]] = i;
+    for (i = k = 0; i < n; height[rank[i++]] = k)
+        for (k ? k-- : 0, j = sa[rank[i] - 1]; r[i + k] == r[j + k]; k++);
+    //若k>0，从k-1开始找最长公共前缀。
+    return;
+}
+
+```
+
+### 23、高斯消元
+
+```c++
+int guass(int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+            scanf("%lf", &B[i][j]); //读入系数
+        scanf("%lf", &B[i][n]);     //读入值
+    }
+    for (int i = 0; i < n; i++)
+    {
+        int pivot = i;
+        for (int j = i; j < n; j++) //选择一个当前位置系数绝对值最大的调换过来，防止误差
+            if (fabs(B[j][i] - B[pivot][i]) <= eps)
+                pivot = j;
+        for (int j = 0; j <= n; j++)
+        { //交换操作，要将所有的全部交换过来
+            double t = B[i][j];
+            B[i][j] = B[pivot][j];
+            B[pivot][j] = t;
+        }
+        if (fabs(B[i][i]) <= eps)
+        { //如果该位置系数等于零，则0x=a，一定无解
+            printf("No Solution\n");
+            return 0;
+        }
+        for (int j = i + 1; j <= n; j++)
+            B[i][j] /= B[i][i]; //将该位的系数变为1
+        for (int j = 0; j < n; j++)
+            if (i != j)
+                for (int k = i + 1; k <= n; k++)
+                    B[j][k] -= B[j][i] * B[i][k]; //将其他方程用加减法减去系数值   
+    }
+     for (int i = 0; i < n; i++)
+            printf("%.2lf\n", B[i][n]); //最后输出结果。
+     return 0;
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 24、小技巧
+
+##### (1)__int 128输入输出
+
+```c++
+__int128_t read()
+{
+    __int128_t x = 0, f = 1;
+    char ch = getchar();
+    while(ch<'0'||ch>'9')
+    {
+        if(ch=='-')	f=-1;
+        ch=getchar();
+    }
+    while(ch>='0'&&ch<='9')
+    {
+        x=x*10+ch-'0';ch=getchar();
+    }
+    return x*f;
+}
+void write(__int128 x)
+{
+    if(x<0)
+    {
+        putchar('-');
+        x=-x;
+    }
+    if(x>9)
+        write(x/10);
+    putchar(x%10+'0');
+}
+```
+
+##### (2)读入挂
+
+```c++
+int read()
+{
+	int v = 0, f = 1;
+	char c =getchar();
+	while( c < 48 || 57 < c ){
+		if(c=='-') f = -1;
+		c = getchar();
+	}
+	while(48 <= c && c <= 57) 
+		v = v*10+c-48, c = getchar();
+	return v*f;
+}
+void Out(int a) 
+{    //输出外挂  
+    if(a < 0) 
+    {
+        putchar('-');
+        a = -a;
+    }  
+    if(a >= 10)
+       Out(a / 10);  
+    putchar(a % 10 + '0');  
+}  
 ```
 
